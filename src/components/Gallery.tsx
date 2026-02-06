@@ -18,6 +18,7 @@ export default function Gallery() {
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -46,6 +47,7 @@ export default function Gallery() {
     if (!allowed.includes(file.type)) return;
 
     setIsUploading(true);
+    setUploadError("");
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -53,9 +55,13 @@ export default function Gallery() {
       if (res.ok) {
         await fetchImages();
         router.refresh();
+      } else {
+        const data = await res.json();
+        setUploadError(data.error || "Upload failed");
       }
-    } catch {
-      // silently fail
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      setUploadError(msg);
     } finally {
       setIsUploading(false);
     }
@@ -118,6 +124,14 @@ export default function Gallery() {
       {isDragging && (
         <div className="fixed inset-0 z-50 bg-amber-500/10 border-2 border-dashed border-amber-400 pointer-events-none flex items-center justify-center">
           <p className="text-amber-300 text-lg font-medium">Drop image here</p>
+        </div>
+      )}
+
+      {/* Upload error */}
+      {uploadError && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-red-900/90 border border-red-500/30 text-red-300 text-sm max-w-md text-center">
+          {uploadError}
+          <button onClick={() => setUploadError("")} className="ml-3 text-red-400 hover:text-red-200">&times;</button>
         </div>
       )}
 

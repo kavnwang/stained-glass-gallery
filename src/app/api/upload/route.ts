@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
     const blob = await put(blobPath, file, {
       access: "public",
       contentType: file.type,
+      addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     const imageRecord: ImageRecord = {
@@ -63,10 +65,11 @@ export async function POST(request: NextRequest) {
       image: imageRecord,
       url: blob.url,
     });
-  } catch (error) {
-    console.error("Upload error:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Upload error:", msg);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: `Upload failed: ${msg}` },
       { status: 500 }
     );
   }
