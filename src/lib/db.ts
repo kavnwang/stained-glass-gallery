@@ -15,15 +15,11 @@ const METADATA_KEY = "metadata/images.json";
  * Read the images list from the metadata blob.
  */
 export async function getImages(): Promise<ImageRecord[]> {
-  try {
-    const { blobs } = await list({ prefix: METADATA_KEY, limit: 1 });
-    if (blobs.length === 0) return [];
-    const res = await fetch(blobs[0].url, { cache: "no-store" });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
+  const { blobs } = await list({ prefix: METADATA_KEY, limit: 1 });
+  if (blobs.length === 0) return [];
+  const res = await fetch(blobs[0].url, { cache: "no-store" });
+  if (!res.ok) return [];
+  return await res.json();
 }
 
 /**

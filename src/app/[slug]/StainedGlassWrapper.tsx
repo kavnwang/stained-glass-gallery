@@ -59,8 +59,9 @@ export default function StainedGlassWrapper({
       }
       const data = await res.json();
       router.replace(`/${data.slug}`);
-    } catch {
-      setError("Rename failed");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Rename failed";
+      setError(msg);
     }
   }, [slugValue, slug, router]);
 
