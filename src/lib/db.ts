@@ -25,12 +25,21 @@ function annotationsBlobKey(slug: string) {
 }
 
 /**
+ * Fetch a blob URL with cache-busting to avoid stale CDN responses.
+ */
+async function fetchBlobFresh(url: string): Promise<Response> {
+  const u = new URL(url);
+  u.searchParams.set("_t", Date.now().toString());
+  return fetch(u.toString(), { cache: "no-store" });
+}
+
+/**
  * Read the images list from the metadata blob.
  */
 export async function getImages(): Promise<ImageRecord[]> {
   const { blobs } = await list({ prefix: METADATA_KEY, limit: 1 });
   if (blobs.length === 0) return [];
-  const res = await fetch(blobs[0].url, { cache: "no-store" });
+  const res = await fetchBlobFresh(blobs[0].url);
   if (!res.ok) return [];
   return await res.json();
 }
@@ -112,7 +121,7 @@ export async function getAnnotations(slug: string): Promise<AnnotationsMap> {
   const key = annotationsBlobKey(slug);
   const { blobs } = await list({ prefix: key, limit: 1 });
   if (blobs.length === 0) return {};
-  const res = await fetch(blobs[0].url, { cache: "no-store" });
+  const res = await fetchBlobFresh(blobs[0].url);
   if (!res.ok) return {};
   return await res.json();
 }
