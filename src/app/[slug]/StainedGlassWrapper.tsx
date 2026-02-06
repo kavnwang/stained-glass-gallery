@@ -11,6 +11,17 @@ interface StainedGlassWrapperProps {
   viewMode?: boolean;
 }
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export default function StainedGlassWrapper({
   imageUrl,
   slug,
@@ -23,6 +34,16 @@ export default function StainedGlassWrapper({
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const isMobile = useIsMobile();
+
+  // On mobile, redirect the normal (edit) page to view mode
+  useEffect(() => {
+    if (isMobile && !viewMode) {
+      router.replace(`/${slug}/view`);
+    }
+  }, [isMobile, viewMode, slug, router]);
+
+  const effectiveViewMode = viewMode || isMobile;
 
   // Close menu on outside click
   useEffect(() => {
@@ -69,28 +90,30 @@ export default function StainedGlassWrapper({
 
   return (
     <div className="relative w-full">
-      {/* Back button – centered vertically in the left margin */}
-      <Link
-        href={viewMode ? `/${slug}` : "/"}
-        className="fixed left-16 top-1/2 -translate-y-1/2 z-40 text-white hover:text-amber-300 transition-colors"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      {/* Back button – hidden on mobile */}
+      {!isMobile && (
+        <Link
+          href={effectiveViewMode ? `/${slug}` : "/"}
+          className="fixed left-16 top-1/2 -translate-y-1/2 z-40 text-white hover:text-amber-300 transition-colors"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2.5}
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-      </Link>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+        </Link>
+      )}
 
-      {/* Rename button – centered vertically in the right margin, hidden in view mode or when panel is showing */}
-      <div ref={menuRef} className={`fixed right-16 top-1/2 -translate-y-1/2 z-40 transition-opacity duration-200 ${viewMode || panelVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      {/* Rename button – hidden on mobile, in view mode, or when panel is showing */}
+      <div ref={menuRef} className={`fixed right-16 top-1/2 -translate-y-1/2 z-40 transition-opacity duration-200 ${isMobile || effectiveViewMode || panelVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <button
           onClick={() => {
             setMenuOpen((v) => !v);
@@ -161,7 +184,7 @@ export default function StainedGlassWrapper({
         )}
       </div>
 
-      <StainedGlass imageUrl={imageUrl} viewMode={viewMode} onHoverAnnotation={setPanelVisible} />
+      <StainedGlass imageUrl={imageUrl} viewMode={effectiveViewMode} onHoverAnnotation={setPanelVisible} />
     </div>
   );
 }
