@@ -41,12 +41,10 @@ export async function POST(request: NextRequest) {
     const ext = file.name.match(/\.[^/.]+$/)?.[0] ?? "";
     const blobPath = `images/${slug}${ext}`;
 
-    // Upload to Vercel Blob
+    // Upload to Vercel Blob (random suffix ensures unique URLs)
     const blob = await put(blobPath, file, {
       access: "public",
       contentType: file.type,
-      addRandomSuffix: false,
-      allowOverwrite: true,
     });
 
     const imageRecord: ImageRecord = {
