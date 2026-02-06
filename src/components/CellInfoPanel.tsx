@@ -30,7 +30,7 @@ export default function CellInfoPanel({
 }: CellInfoPanelProps) {
   const [title, setTitle] = useState(annotation?.title ?? "");
   const [description, setDescription] = useState(annotation?.description ?? "");
-  const [date, setDate] = useState(annotation?.date ?? "");
+  const [date, setDate] = useState(annotation?.date ?? new Date().toISOString().split("T")[0]);
   const [imageDataUrl, setImageDataUrl] = useState<string | undefined>(
     annotation?.imageDataUrl
   );
@@ -41,7 +41,7 @@ export default function CellInfoPanel({
   useEffect(() => {
     setTitle(annotation?.title ?? "");
     setDescription(annotation?.description ?? "");
-    setDate(annotation?.date ?? "");
+    setDate(annotation?.date ?? new Date().toISOString().split("T")[0]);
     setImageDataUrl(annotation?.imageDataUrl);
   }, [annotation, cellId]);
 
