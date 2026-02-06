@@ -5,7 +5,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const image = getImageBySlug(params.slug);
+  const image = await getImageBySlug(params.slug);
   if (!image) {
     return NextResponse.json({ error: "Image not found" }, { status: 404 });
   }
@@ -21,7 +21,7 @@ export async function PATCH(
   if (!newSlug) {
     return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
   }
-  const updated = updateImageSlug(params.slug, newSlug);
+  const updated = await updateImageSlug(params.slug, newSlug);
   if (!updated) {
     return NextResponse.json(
       { error: "Image not found or slug already taken" },
@@ -35,7 +35,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const deleted = deleteImage(params.slug);
+  const deleted = await deleteImage(params.slug);
   if (!deleted) {
     return NextResponse.json({ error: "Image not found" }, { status: 404 });
   }

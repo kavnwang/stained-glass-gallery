@@ -6,8 +6,8 @@ interface PageProps {
   params: { slug: string };
 }
 
-export default function ImagePage({ params }: PageProps) {
-  const image = getImageBySlug(params.slug);
+export default async function ImagePage({ params }: PageProps) {
+  const image = await getImageBySlug(params.slug);
 
   if (!image) {
     notFound();
@@ -15,7 +15,7 @@ export default function ImagePage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-2">
-      <StainedGlassWrapper imageUrl={`/uploads/${image.fileName}`} slug={params.slug} />
+      <StainedGlassWrapper imageUrl={image.blobUrl} slug={params.slug} />
     </main>
   );
 }

@@ -1,61 +1,79 @@
-import fs from "fs";
-import path from "path";
+import { put, del, list } from "@vercel/blob";
 
 export interface ImageRecord {
   id: string;
   slug: string;
   originalName: string;
   fileName: string;
-  width: number;
-  height: number;
+  blobUrl: string;
   uploadedAt: string;
 }
 
-const DB_PATH = path.join(process.cwd(), "data", "images.json");
+const METADATA_KEY = "metadata/images.json";
 
-export function getImages(): ImageRecord[] {
+/**
+ * Read the images list from the metadata blob.
+ */
+export async function getImages(): Promise<ImageRecord[]> {
   try {
-    const data = fs.readFileSync(DB_PATH, "utf-8");
-    return JSON.parse(data);
+    const { blobs } = await list({ prefix: METADATA_KEY, limit: 1 });
+    if (blobs.length === 0) return [];
+    const res = await fetch(blobs[0].url, { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
     return [];
   }
 }
 
-export function getImageBySlug(slug: string): ImageRecord | undefined {
-  const images = getImages();
+/**
+ * Persist the full images list back to the metadata blob.
+ */
+async function saveImages(images: ImageRecord[]): Promise<void> {
+  await put(METADATA_KEY, JSON.stringify(images, null, 2), {
+    access: "public",
+    addRandomSuffix: false,
+    contentType: "application/json",
+  });
+}
+
+export async function getImageBySlug(
+  slug: string
+): Promise<ImageRecord | undefined> {
+  const images = await getImages();
   return images.find((img) => img.slug === slug);
 }
 
-export function addImage(image: ImageRecord): void {
-  const images = getImages();
+export async function addImage(image: ImageRecord): Promise<void> {
+  const images = await getImages();
   images.push(image);
-  fs.writeFileSync(DB_PATH, JSON.stringify(images, null, 2));
+  await saveImages(images);
 }
 
-export function updateImageSlug(oldSlug: string, newSlug: string): boolean {
-  const images = getImages();
+export async function updateImageSlug(
+  oldSlug: string,
+  newSlug: string
+): Promise<boolean> {
+  const images = await getImages();
   const img = images.find((i) => i.slug === oldSlug);
   if (!img) return false;
-  // Check for conflicts
   if (images.some((i) => i.slug === newSlug && i.id !== img.id)) return false;
   img.slug = newSlug;
-  fs.writeFileSync(DB_PATH, JSON.stringify(images, null, 2));
+  await saveImages(images);
   return true;
 }
 
-export function deleteImage(slug: string): boolean {
-  const images = getImages();
+export async function deleteImage(slug: string): Promise<boolean> {
+  const images = await getImages();
   const idx = images.findIndex((img) => img.slug === slug);
   if (idx === -1) return false;
   const [removed] = images.splice(idx, 1);
-  fs.writeFileSync(DB_PATH, JSON.stringify(images, null, 2));
-  // Also delete the file
-  const filePath = path.join(process.cwd(), "public", "uploads", removed.fileName);
+  // Delete the image blob
   try {
-    fs.unlinkSync(filePath);
+    await del(removed.blobUrl);
   } catch {
-    // file may already be gone
+    // blob may already be gone
   }
+  await saveImages(images);
   return true;
 }

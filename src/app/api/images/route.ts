@@ -4,6 +4,6 @@ import { getImages } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const images = getImages();
+  const images = await getImages();
   return NextResponse.json(images);
 }
