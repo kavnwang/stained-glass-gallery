@@ -184,7 +184,7 @@ export default function StainedGlassWrapper({
         )}
       </div>
 
-      <StainedGlass imageUrl={imageUrl} viewMode={effectiveViewMode} onHoverAnnotation={setPanelVisible} />
+      <StainedGlass imageUrl={imageUrl} slug={slug} viewMode={effectiveViewMode} onHoverAnnotation={setPanelVisible} />
     </div>
   );
 }

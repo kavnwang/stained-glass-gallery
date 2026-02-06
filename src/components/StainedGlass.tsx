@@ -8,32 +8,10 @@ const NUM_CELLS = 120;
 
 interface StainedGlassProps {
   imageUrl: string;
+  slug: string;
   shuffleKey?: number;
   viewMode?: boolean;
   onHoverAnnotation?: (hovering: boolean) => void;
-}
-
-/* ── localStorage helpers ────────────────────────────────── */
-
-function storageKey(imageUrl: string) {
-  return `sg-annotations-${imageUrl}`;
-}
-
-function loadAnnotations(imageUrl: string): Record<number, CellAnnotation> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(storageKey(imageUrl));
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveAnnotations(
-  imageUrl: string,
-  data: Record<number, CellAnnotation>
-) {
-  localStorage.setItem(storageKey(imageUrl), JSON.stringify(data));
 }
 
 /* ── read-only display panel ─────────────────────────────── */
@@ -115,7 +93,7 @@ function ReadOnlyPanel({ annotation }: { annotation: CellAnnotation }) {
 
 /* ── component ───────────────────────────────────────────── */
 
-export default function StainedGlass({ imageUrl, shuffleKey = 0, viewMode = false, onHoverAnnotation }: StainedGlassProps) {
+export default function StainedGlass({ imageUrl, slug, shuffleKey = 0, viewMode = false, onHoverAnnotation }: StainedGlassProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cells, setCells] = useState<VoronoiCell[]>([]);
   const [hoveredCell, setHoveredCell] = useState<number | null>(null);
@@ -129,10 +107,17 @@ export default function StainedGlass({ imageUrl, shuffleKey = 0, viewMode = fals
   const imageRef = useRef<HTMLImageElement | null>(null);
   const scaleRef = useRef(1);
 
-  // Load persisted annotations on mount
+  // Load persisted annotations from server on mount
   useEffect(() => {
-    setAnnotations(loadAnnotations(imageUrl));
-  }, [imageUrl]);
+    let cancelled = false;
+    fetch(`/api/images/${encodeURIComponent(slug)}/annotations`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => {
+        if (!cancelled) setAnnotations(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug]);
 
   /* ── load image & generate cells ──────────────────────── */
   useEffect(() => {
@@ -345,15 +330,26 @@ export default function StainedGlass({ imageUrl, shuffleKey = 0, viewMode = fals
   );
 
   /* ── annotation CRUD ──────────────────────────────────── */
+  const persistAnnotations = useCallback(
+    (next: Record<number, CellAnnotation>) => {
+      fetch(`/api/images/${encodeURIComponent(slug)}/annotations`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      }).catch(() => {});
+    },
+    [slug]
+  );
+
   const handleSave = useCallback(
     (cellId: number, data: CellAnnotation) => {
       setAnnotations((prev) => {
         const next = { ...prev, [cellId]: data };
-        saveAnnotations(imageUrl, next);
+        persistAnnotations(next);
         return next;
       });
     },
-    [imageUrl]
+    [persistAnnotations]
   );
 
   const handleDelete = useCallback(
@@ -361,11 +357,11 @@ export default function StainedGlass({ imageUrl, shuffleKey = 0, viewMode = fals
       setAnnotations((prev) => {
         const next = { ...prev };
         delete next[cellId];
-        saveAnnotations(imageUrl, next);
+        persistAnnotations(next);
         return next;
       });
     },
-    [imageUrl]
+    [persistAnnotations]
   );
 
   const handleClosePanel = useCallback(() => setSelectedCell(null), []);
