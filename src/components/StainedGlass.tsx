@@ -267,15 +267,15 @@ export default function StainedGlass({ imageUrl, shuffleKey = 0, viewMode = fals
 
         buildPath();
         ctx.shadowColor = `rgba(${lr}, ${lg}, ${lb}, 1)`;
-        ctx.shadowBlur = 14;
+        ctx.shadowBlur = 10;
         ctx.strokeStyle = `rgba(${lr}, ${lg}, ${lb}, 0.8)`;
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
         ctx.shadowBlur = 0;
 
         buildPath();
         ctx.strokeStyle = `rgba(255, 255, 255, 0.9)`;
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
       } else {
         // Subtle thin border for unfilled cells
