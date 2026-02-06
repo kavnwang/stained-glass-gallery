@@ -259,18 +259,18 @@ export default function StainedGlass({ imageUrl, shuffleKey = 0, viewMode = fals
       };
 
       if (filled) {
-        // Full glow border for filled cells
+        // Bold glowing border for filled cells
         buildPath();
-        ctx.shadowColor = `rgba(${er}, ${eg}, ${eb}, 0.7)`;
-        ctx.shadowBlur = 4;
-        ctx.strokeStyle = `rgba(${er}, ${eg}, ${eb}, 0.5)`;
-        ctx.lineWidth = 2.4;
+        ctx.shadowColor = `rgba(${er}, ${eg}, ${eb}, 0.9)`;
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = `rgba(${er}, ${eg}, ${eb}, 0.7)`;
+        ctx.lineWidth = 4;
         ctx.stroke();
         ctx.shadowBlur = 0;
 
         buildPath();
-        ctx.strokeStyle = `rgba(${er}, ${eg}, ${eb}, 0.8)`;
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = `rgba(${er}, ${eg}, ${eb}, 0.95)`;
+        ctx.lineWidth = 2;
         ctx.stroke();
       } else {
         // Subtle thin border for unfilled cells
