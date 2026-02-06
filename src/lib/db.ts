@@ -29,6 +29,7 @@ async function saveImages(images: ImageRecord[]): Promise<void> {
   await put(METADATA_KEY, JSON.stringify(images, null, 2), {
     access: "public",
     addRandomSuffix: false,
+    allowOverwrite: true,
     contentType: "application/json",
   });
 }
