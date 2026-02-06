@@ -37,8 +37,6 @@ export default function Gallery() {
 
   useEffect(() => {
     fetchImages();
-    const interval = setInterval(fetchImages, 2000);
-    return () => clearInterval(interval);
   }, []);
 
   /* ── upload handling ───────────────────────────────────── */
