@@ -8,11 +8,13 @@ import StainedGlass from "@/components/StainedGlass";
 interface StainedGlassWrapperProps {
   imageUrl: string;
   slug: string;
+  viewMode?: boolean;
 }
 
 export default function StainedGlassWrapper({
   imageUrl,
   slug,
+  viewMode = false,
 }: StainedGlassWrapperProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [slugValue, setSlugValue] = useState(slug);
@@ -69,7 +71,7 @@ export default function StainedGlassWrapper({
     <div className="relative w-full">
       {/* Back button – centered vertically in the left margin */}
       <Link
-        href="/"
+        href={viewMode ? `/${slug}` : "/"}
         className="fixed left-16 top-1/2 -translate-y-1/2 z-40 text-white hover:text-amber-300 transition-colors"
       >
         <svg
@@ -87,8 +89,8 @@ export default function StainedGlassWrapper({
         </svg>
       </Link>
 
-      {/* Rename button – centered vertically in the right margin, hidden when panel is showing */}
-      <div ref={menuRef} className={`fixed right-16 top-1/2 -translate-y-1/2 z-40 transition-opacity duration-200 ${panelVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      {/* Rename button – centered vertically in the right margin, hidden in view mode or when panel is showing */}
+      <div ref={menuRef} className={`fixed right-16 top-1/2 -translate-y-1/2 z-40 transition-opacity duration-200 ${viewMode || panelVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <button
           onClick={() => {
             setMenuOpen((v) => !v);
@@ -159,7 +161,7 @@ export default function StainedGlassWrapper({
         )}
       </div>
 
-      <StainedGlass imageUrl={imageUrl} onHoverAnnotation={setPanelVisible} />
+      <StainedGlass imageUrl={imageUrl} viewMode={viewMode} onHoverAnnotation={setPanelVisible} />
     </div>
   );
 }
